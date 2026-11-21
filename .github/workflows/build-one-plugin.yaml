@@ -1,0 +1,56 @@
+name: Build One Plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      plugin_type:
+        description: "Plugin type"
+        required: true
+        type: choice
+        default: go
+        options: [go, rust]
+      plugin_name:
+        description: "Plugin directory name under extensions/, e.g. ai-proxy"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24
+        if: inputs.plugin_type == 'go'
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+        if: inputs.plugin_type == 'rust'
+
+      - name: Build Go plugin
+        if: inputs.plugin_type == 'go'
+        run: |
+          cd plugins/wasm-go
+          PLUGIN_NAME=${{ inputs.plugin_name }} make build
+
+      - name: Build Rust plugin
+        if: inputs.plugin_type == 'rust'
+        run: |
+          cd plugins/wasm-rust
+          PLUGIN_NAME=${{ inputs.plugin_name }} make build
+
+      - name: Upload wasm artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.plugin_name }}-plugin-wasm
+          path: |
+            plugins/wasm-go/extensions/${{ inputs.plugin_name }}/plugin.wasm
+            plugins/wasm-rust/extensions/${{ inputs.plugin_name }}/plugin.wasm
