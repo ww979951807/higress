@@ -1,0 +1,19 @@
+apiVersion: extensions.higress.io/v1alpha1
+kind: WasmPlugin
+metadata:
+  name: ai-priority-queue
+  namespace: higress-system
+spec:
+  defaultConfig:
+    redis:
+      service_name: redis-stack.higress-system.svc.cluster.local
+      service_port: 6379
+      timeout: 1000
+    cache_ttl: 60
+    max_poll_ms: 100
+    idle_poll_ms: 2000
+    request_body: true
+  defaultConfigDisable: false
+  phase: UNSPECIFIED_PHASE
+  priority: 220
+  url: oci://higress-registry.cn-hangzhou.cr.aliyuncs.com/plugins/ai-priority-queue:1.0.0
